@@ -1,0 +1,2 @@
+# SortingViz
+A sorting visualizer 

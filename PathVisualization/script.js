@@ -1,13 +1,28 @@
-// Create a 4x4 grid
+const COLS = 20;
+const ROWS = 20;
+
+/**
+ *
+ */
+class Node {
+    constructor(row, col) {
+        this.seen = false;
+        this.obstacle = false;
+        this.row = row;
+        this.col = col;
+    }
+}
+
+// Create a COLS x ROWS grid
 // Represent the grid as a 2-dimensional array
-var gridSize = 4;
 var grid = [];
-for (var i=0; i<gridSize; i++) {
-  grid[i] = [];
-  for (var j=0; j<gridSize; j++) {
-    grid[i][j] = 'Empty';
+for (var row = 0; row < ROWS; row++) {
+     grid[row] = [];
+  for (var col = 0; col < COLS; col++) {
+    grid[row][col] = new Node(row, col);
   }
 }
+
 
 function generateGrid(r, c) {
     var grid = "<table>";
@@ -24,17 +39,47 @@ function generateGrid(r, c) {
 
 var g = generateGrid(20, 20);
 console.log(g);
-// $("#container").append(g);
 $("#grid").append(g);    // add the grid to html.
 
-// Think of the first index as "distance from the top row"
-// Think of the second index as "distance from the left-most column"
 
-// This is how we would represent the grid with obstacles above
-// grid[0][0] = "Start";
-// grid[2][2] = "Goal";
-//
-// grid[1][1] = "Obstacle";
-// grid[1][2] = "Obstacle";
-// grid[1][3] = "Obstacle";
-// grid[2][1] = "Obstacle";
+// stores nodes to track
+var queue = [];
+var end = null;
+
+let stepInterval;
+// keep stepping
+function search() {
+    if (queue.length > 0 && end != null) {
+        stepInterval = setInterval(step(), 20000);
+    }
+}
+
+function step() {
+    // do one step of the BFS operation
+    var current = queue[0];
+    for (var i = -1; i < 1; i++) {
+        for (var j = -1; j < 1; j++) {
+            if (i != 0 && j != 0) {
+                var newRow = current.row;
+                var newCol = current.col;
+            }
+        }
+    }
+    // if end is reached, stop the interval
+
+    clearInterval(stepInterval);
+}
+
+
+function reset() {
+    // clear everything
+    queue = [];
+    end = null;
+    for (var row = 0; row < ROWS; row++) {
+        grid[row] = [];
+        for (var col = 0; col < COLS; col++) {
+            grid[row][col].obstacle = false;
+            grid[row][col].obstacle = true;
+        }
+    }
+}

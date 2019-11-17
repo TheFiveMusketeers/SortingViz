@@ -3,9 +3,9 @@ table {
 }
 
 td {
-    border: 1px solid;
-    width: 20px;
-    height: 20px;
+    border: 2px solid;
+    width: 30px;
+    height: 30px;
     padding: 0;
     margin: 0;
 }

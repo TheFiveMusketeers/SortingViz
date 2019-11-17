@@ -1,5 +1,6 @@
 const COLS = 20;
 const ROWS = 20;
+var queue = [];
 
 /**
  *
@@ -8,18 +9,17 @@ class Node {
     constructor(row, col) {
         this.seen = false;
         this.obstacle = false;
-        this.row = row;
-        this.col = col;
+        this.prev = null;
     }
 }
 
 // Create a COLS x ROWS grid
 // Represent the grid as a 2-dimensional array
 var grid = [];
-for (var row = 0; row < ROWS; row++) {
-     grid[row] = [];
-  for (var col = 0; col < COLS; col++) {
-    grid[row][col] = new Node(row, col);
+for (var col = 0; col < COLS; col++) {
+     grid[col] = [];
+  for (var row = 0; row < ROWS; row++) {
+    grid[col][row] = new Node();
   }
 }
 
@@ -52,6 +52,7 @@ document.getElementById("grid").onclick = function(event) {
 
     if (pathStart === null) {
         pathStart = getTablePos(event.target.id);
+        queue.push(pathStart);
     } else {
         pathEnd = getTablePos(event.target.id);
     }
@@ -64,14 +65,10 @@ function getTablePos(id) {
     return pos;
 }
 
-var g = generateGrid(20, 20);
+var g = generateGrid(ROWS,  COLS);
 console.log(g);
 $("#grid").append(g);    // add the grid to html.
 
-
-// stores nodes to track
-var queue = [];
-var end = null;
 
 let stepInterval;
 // keep stepping
@@ -83,12 +80,29 @@ function search() {
 
 function step() {
     // do one step of the BFS operation
-    var current = queue[0];
+    if (queue.length === 0) {
+        clearInterval(stepInterval);
+    }
+    var current = queue.shift();
     for (var i = -1; i < 1; i++) {
         for (var j = -1; j < 1; j++) {
-            if (i != 0 && j != 0) {
-                var newRow = current.row;
-                var newCol = current.col;
+            if (i !== 0 && j !== 0) {
+                var newCol = current[0] + i;
+                var newRow = current[1] + j;
+                if (newCol === pathEnd[0] && newRow === pathEnd[1]) {
+                    clearInterval(stepInterval);
+                    grid[pathEnd[0]][pathEnd[1]].prev = current;
+                    displayPath(current);
+
+                }
+                // in bounds and not seen, and not obstacle
+                if (0 <= newCol && newCol < grid.length &&
+                        0 <= newRow && newRow < grid[newCol].length &&
+                        !grid[newCol][newRow].seen && !grid[newCol][newRow].obstacle) {
+                    queue.push([newCol, newRow]);
+                    grid[newCol][newRow].prev = current;
+                    grid[newCol][newRow].seen = true;
+                }
             }
         }
     }
@@ -97,16 +111,23 @@ function step() {
     clearInterval(stepInterval);
 }
 
+function displayCurrent(current) {
+    while (current.prev != null) {
+        // change color
+        console.log(current);
+        current = current.prev;
+    }
+}
 
 function reset() {
     // clear everything
+    pathStart = null;
+    pathEnd = null;
     queue = [];
-    end = null;
-    for (var row = 0; row < ROWS; row++) {
-        grid[row] = [];
-        for (var col = 0; col < COLS; col++) {
-            grid[row][col].obstacle = false;
-            grid[row][col].obstacle = true;
+    for (var col = 0; col < COLS; col++) {
+        grid[col] = [];
+        for (var row = 0; row < ROWS; row++) {
+            grid[col][row] = new Node();
         }
     }
 }

@@ -53,6 +53,7 @@ document.getElementById("grid").onclick = function(event) {
     if (pathStart === null) {
         pathStart = getTablePos(event.target.id);
         queue.push(pathStart);
+        grid[pathStart[0]][pathStart[1]].seen = true;
     } else {
         pathEnd = getTablePos(event.target.id);
     }
@@ -66,15 +67,15 @@ function getTablePos(id) {
 }
 
 var g = generateGrid(ROWS,  COLS);
-console.log(g);
+// console.log(g);
 $("#grid").append(g);    // add the grid to html.
 
 
 let stepInterval;
 // keep stepping
 function search() {
-    if (queue.length > 0 && end != null) {
-        stepInterval = setInterval(step(), 20000);
+    if (queue.length > 0 && pathEnd != null) {
+        stepInterval = setInterval(step, 1000);
     }
 }
 
@@ -84,8 +85,8 @@ function step() {
         clearInterval(stepInterval);
     }
     var current = queue.shift();
-    for (var i = -1; i < 1; i++) {
-        for (var j = -1; j < 1; j++) {
+    for (var i = -1; i <= 1; i++) {
+        for (var j = -1; j <= 1; j++) {
             if (i !== 0 && j !== 0) {
                 var newCol = current[0] + i;
                 var newRow = current[1] + j;
@@ -99,6 +100,7 @@ function step() {
                 if (0 <= newCol && newCol < grid.length &&
                         0 <= newRow && newRow < grid[newCol].length &&
                         !grid[newCol][newRow].seen && !grid[newCol][newRow].obstacle) {
+                    console.log(newCol + " " + newRow);
                     queue.push([newCol, newRow]);
                     grid[newCol][newRow].prev = current;
                     grid[newCol][newRow].seen = true;
@@ -106,9 +108,6 @@ function step() {
             }
         }
     }
-    // if end is reached, stop the interval
-
-    clearInterval(stepInterval);
 }
 
 function displayCurrent(current) {

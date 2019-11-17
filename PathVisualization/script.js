@@ -1,12 +1,12 @@
-const COLS = 20;
-const ROWS = 20;
+const WIDTH = 20;
+const HEIGHT = 10;
 var queue = [];
 
 /**
  *
  */
 class Node {
-    constructor(row, col) {
+    constructor() {
         this.seen = false;
         this.obstacle = false;
         this.prev = null;
@@ -14,23 +14,27 @@ class Node {
     }
 }
 
-// Create a COLS x ROWS grid
-// Represent the grid as a 2-dimensional array
-var grid = [];
-for (var col = 0; col < COLS; col++) {
-     grid[col] = [];
-  for (var row = 0; row < ROWS; row++) {
-    grid[col][row] = new Node();
-  }
+class Position {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    equals(o) {
+        if (o instanceof Position) {
+            return this.x === o.x && this.y === o.y;
+        } else {
+            return false;
+        }
+    }
 }
 
-
-function generateGrid(r, c) {
+function generateGrid() {
     var grid = "<table>";
-    for (var row = 0; row < r; row++) {
+    for (var y = 0; y < HEIGHT; y++) {
         grid += "<tr>";
-        for (var col = 0; col < c; col++) {
-            grid += '<td id="' + row + 'r' + 'c' + col + '"' + '></td>';
+        for (var x = 0; x < WIDTH; x++) {
+            grid += '<td id="' + x + "rc" + y + '"' + '></td>';
         }
         grid += "</tr>";
     }
@@ -52,34 +56,34 @@ document.getElementById("grid").onclick = function(event) {
         reset();
     }
 
-    if (pathStart === null) {
-        pathStart = getTablePos(event.target.id);
-        queue.push(pathStart);
-        grid[pathStart[0]][pathStart[1]].seen = true;
+    pos = getTablePos(event.target.id);
 
-        refresh();
+    if (pathStart === null) {
+        pathStart = pos
     } else {
-        pathEnd = getTablePos(event.target.id);
-        refresh();
+        pathEnd = pos;
     }
+
+    refresh();
 }
 
 function getTablePos(id) {
     pos = id.split('rc');
     pos[0] = Number(pos[0]);
     pos[1] = Number(pos[1]);
-    return pos;
+    return new Position(pos[0], pos[1]);
 }
 
-var g = generateGrid(ROWS,  COLS);
-// console.log(g);
-$("#grid").append(g);    // add the grid to html.
-
+function nodeAt(pos) {
+    return grid[pos.x][pos.y];
+}
 
 let stepInterval;
 // keep stepping
 function search() {
-    if (queue.length > 0 && pathEnd != null) {
+    if (pathStart !== null && pathEnd !== null) {
+        queue.push(pathStart);
+        nodeAt(pathStart).seen = true;
         stepInterval = setInterval(step, 100);
     }
 }
@@ -94,21 +98,20 @@ function step() {
         for (var j = -1; j <= 1; j++) {
             if ((i !== 0 && j === 0) ||
                 (i === 0 && j !== 0)) {
-                var newCol = current[0] + i;
-                var newRow = current[1] + j;
-                if (newCol === pathEnd[0] && newRow === pathEnd[1]) {
+                var newPos = new Position(current.x + i, current.y + j);
+
+                if (newPos.equals(pathEnd)) {
                     clearInterval(stepInterval);
-                    grid[pathEnd[0]][pathEnd[1]].prev = current;
-                    displayPath(grid[current[0]][current[1]]);
+                    nodeAt(pathEnd).prev = current;
+                    displayPath(current);
                 }
                 // in bounds and not seen, and not obstacle
-                if (0 <= newCol && newCol < grid.length &&
-                        0 <= newRow && newRow < grid[newCol].length &&
-                        !grid[newCol][newRow].seen && !grid[newCol][newRow].obstacle) {
-                    console.log(newCol + " " + newRow);
-                    queue.push([newCol, newRow]);
-                    grid[newCol][newRow].prev = current;
-                    grid[newCol][newRow].seen = true;
+                if (isInBounds(newPos)) {
+                    console.log(newPos.x + " " + newPos.y);
+
+                    queue.push(newPos);
+                    nodeAt(newPos).prev = current;
+                    nodeAt(newPos).seen = true;
                 }
             }
         }
@@ -117,36 +120,46 @@ function step() {
     refresh();
 }
 
+function isInBounds(pos) {
+    return 0 <= pos.x && pos.x < WIDTH
+        && 0 <= pos.y && pos.y < HEIGHT
+        && !nodeAt(pos).seen
+        && !nodeAt(pos).obstacle;
+}
+
 function refresh() {
-    for (var x = 0; x < COLS; x++) {
-        for (var y = 0; y < ROWS; y++) {
-            if (grid[x][y].onpath) {
+    var currPos = new Position(0, 0);
+
+    for (currPos.x = 0; currPos.x < WIDTH; currPos.x++) {
+        for (currPos.y = 0; currPos.y < HEIGHT; currPos.y++) {
+            var curr = nodeAt(currPos);
+
+            if (currPos.equals(pathStart)) {
+                color = "green";
+            } else if (currPos.equals(pathEnd)) {
+                color = "red";
+            } else if (curr.onpath) {
                 color = "purple"
-            } else if (grid[x][y].seen) {
-                color = "gray";
-            } else if (grid[x][y].obstacle) {
+            } else if (curr.seen) {
+                color = "lightgray"
+            } else if (curr.obstacle) {
                 color = "black"
             } else {
                 color = "white"
             }
 
-            if (pathStart !== null && x === pathStart[0] && y === pathStart[1]) {
-                color = "green"
-            } else if (pathEnd !== null && x === pathEnd[0] && y === pathEnd[1]) {
-                color = "red"
-            }
-
-            document.getElementById(x + "rc" + y).style.backgroundColor = color;
+            document.getElementById(currPos.x + "rc" + currPos.y).style.backgroundColor = color;
         }
     }
 }
 
-function displayPath(current) {
-    while (current.prev != null) {
-        // change color
-        console.log(current);
-        current.onpath = true;
-        current = grid[current.prev[0]][current.prev[1]];
+function displayPath(currentPos) {
+    curr = nodeAt(currentPos);
+    while (curr.prev != null) {
+        console.log(curr);
+
+        curr.onpath = true;
+        curr = nodeAt(curr.prev);
     }
 }
 
@@ -155,10 +168,19 @@ function reset() {
     pathStart = null;
     pathEnd = null;
     queue = [];
-    for (var col = 0; col < COLS; col++) {
-        grid[col] = [];
-        for (var row = 0; row < ROWS; row++) {
-            grid[col][row] = new Node();
+    for (var x = 0; x < WIDTH; x++) {
+        grid[x] = [];
+        for (var y = 0; y < HEIGHT; y++) {
+            grid[x][y] = new Node();
         }
     }
 }
+
+// Create a WIDTH x HEIGHT grid
+// Represent the grid as a 2-dimensional array
+var grid = [];
+reset();
+
+var g = generateGrid();
+// console.log(g);
+$("#grid").append(g);    // add the grid to html.

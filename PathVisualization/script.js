@@ -10,6 +10,7 @@ class Node {
         this.seen = false;
         this.obstacle = false;
         this.prev = null;
+        this.onpath = false;
     }
 }
 
@@ -48,14 +49,18 @@ document.getElementById("grid").onclick = function(event) {
     if (pathEnd !== null) {
         pathStart = null;
         pathEnd = null;
+        reset();
     }
 
     if (pathStart === null) {
         pathStart = getTablePos(event.target.id);
         queue.push(pathStart);
         grid[pathStart[0]][pathStart[1]].seen = true;
+
+        refresh();
     } else {
         pathEnd = getTablePos(event.target.id);
+        refresh();
     }
 }
 
@@ -75,7 +80,7 @@ let stepInterval;
 // keep stepping
 function search() {
     if (queue.length > 0 && pathEnd != null) {
-        stepInterval = setInterval(step, 1000);
+        stepInterval = setInterval(step, 100);
     }
 }
 
@@ -87,14 +92,14 @@ function step() {
     var current = queue.shift();
     for (var i = -1; i <= 1; i++) {
         for (var j = -1; j <= 1; j++) {
-            if (i !== 0 && j !== 0) {
+            if ((i !== 0 && j === 0) ||
+                (i === 0 && j !== 0)) {
                 var newCol = current[0] + i;
                 var newRow = current[1] + j;
                 if (newCol === pathEnd[0] && newRow === pathEnd[1]) {
                     clearInterval(stepInterval);
                     grid[pathEnd[0]][pathEnd[1]].prev = current;
-                    displayPath(current);
-
+                    displayPath(grid[current[0]][current[1]]);
                 }
                 // in bounds and not seen, and not obstacle
                 if (0 <= newCol && newCol < grid.length &&
@@ -108,13 +113,40 @@ function step() {
             }
         }
     }
+
+    refresh();
 }
 
-function displayCurrent(current) {
+function refresh() {
+    for (var x = 0; x < COLS; x++) {
+        for (var y = 0; y < ROWS; y++) {
+            if (grid[x][y].onpath) {
+                color = "purple"
+            } else if (grid[x][y].seen) {
+                color = "gray";
+            } else if (grid[x][y].obstacle) {
+                color = "black"
+            } else {
+                color = "white"
+            }
+
+            if (pathStart !== null && x === pathStart[0] && y === pathStart[1]) {
+                color = "green"
+            } else if (pathEnd !== null && x === pathEnd[0] && y === pathEnd[1]) {
+                color = "red"
+            }
+
+            document.getElementById(x + "rc" + y).style.backgroundColor = color;
+        }
+    }
+}
+
+function displayPath(current) {
     while (current.prev != null) {
         // change color
         console.log(current);
-        current = current.prev;
+        current.onpath = true;
+        current = grid[current.prev[0]][current.prev[1]];
     }
 }
 

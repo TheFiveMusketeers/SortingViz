@@ -37,6 +37,33 @@ function generateGrid(r, c) {
     return grid;
 }
 
+var pathStart = null;
+var pathEnd = null;
+
+document.getElementById("grid").onclick = function(event) {
+    if (event.target.localName != "td") {
+        return;
+    }
+
+    if (pathEnd !== null) {
+        pathStart = null;
+        pathEnd = null;
+    }
+
+    if (pathStart === null) {
+        pathStart = getTablePos(event.target.id);
+    } else {
+        pathEnd = getTablePos(event.target.id);
+    }
+}
+
+function getTablePos(id) {
+    pos = id.split('rc');
+    pos[0] = Number(pos[0]);
+    pos[1] = Number(pos[1]);
+    return pos;
+}
+
 var g = generateGrid(20, 20);
 console.log(g);
 $("#grid").append(g);    // add the grid to html.

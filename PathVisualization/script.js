@@ -45,18 +45,54 @@ function generateGrid() {
 var pathStart = null;
 var pathEnd = null;
 
-document.getElementById("grid").onclick = function(event) {
+var dragStart = null;
+
+document.getElementById("grid").onmousedown = function(event) {
+    console.log("down");
     if (event.target.localName != "td") {
         return;
     }
+
+    dragStart = getTablePos(event.target.id);
+    document.getElementById("grid").onmousemove = mouseDrag;
+}
+
+function mouseDrag(event) {
+    console.log("move");
+    if (event.target.localName != "td") {
+        return;
+    }
+
+    pos = getTablePos(event.target.id);
+    if (!pos.equals(dragStart)) {
+        nodeAt(pos).obstacle = true;
+        nodeAt(dragStart).obstacle = true;
+        refresh();
+    }
+}
+
+document.getElementById("grid").onmouseup = function(event) {
+    console.log("up");
+    if (event.target.localName != "td") {
+        return;
+    }
+
+    pos = getTablePos(event.target.id);
+
+    document.getElementById("grid").onmousemove = null;
+
+    if (!pos.equals(dragStart)) {
+        // finish drag
+        dragStart = null;
+        return
+    }
+    dragStart = null;
 
     if (pathEnd !== null) {
         pathStart = null;
         pathEnd = null;
         reset();
     }
-
-    pos = getTablePos(event.target.id);
 
     if (pathStart === null) {
         pathStart = pos
@@ -92,7 +128,9 @@ function step() {
     // do one step of the BFS operation
     if (queue.length === 0) {
         clearInterval(stepInterval);
+        return;
     }
+
     var current = queue.shift();
     for (var i = -1; i <= 1; i++) {
         for (var j = -1; j <= 1; j++) {

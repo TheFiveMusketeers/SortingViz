@@ -11,18 +11,19 @@ class Graph {
     }
     
     draw(ctx) {
-    	var barwidth = width/elements.length;
+    	var barwidth = this.width/this.elements.length;
         var maxbar = Math.max(...this.elements);
         var curr = 0;
-        for(i = 0; i < this.elements.length; i++){
+        for(var i = 0; i < this.elements.length; i++){
             this.drawBar(this.elements[i], i, barwidth, maxbar);
         }
     }
 
     drawBar(item, index, barwidth, maxbar){
-        var height = item/maxbar * height;
-        ctx.fillRect(x + index*barwidth, y + this.height - height, barwidth, height);
+        var height = item/maxbar * this.height;
+        ctx.fillRect(this.x + index*barwidth, this.y + this.height - height, barwidth, height);
     }
+
 }
 
 var graph = new Graph();

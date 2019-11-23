@@ -6,16 +6,16 @@ class Graph {
     constructor() {
         this.x = 0;
         this.y = 0;
-        this.width = 400;
-        this.height= 300;
-        this.elements = [20, 5, 69, 15, 92, 1, 81, 2];
+        this.width = 750;
+        this.height= 350;
+        this.elements = [109, 109, 109, 109, 109, 121, 64, 60, 23, 147, 127, 184, 11, 166, 71, 115, 158, 10, 85, 98, 37, 15, 12, 195, 21, 151, 50, 138, 179, 167, 173, 180, 183, 65, 120, 190, 144, 72, 39, 62, 47, 84, 57, 77, 63, 181, 104, 175, 56, 154, 145, 89, 55, 153, 116, 97, 58, 126, 3, 139, 24, 100, 199, 27, 163, 140, 76, 137, 161, 66, 132, 200, 101, 92, 90, 29, 52, 8, 129, 152, 130, 54, 13, 107, 136, 160, 196, 171, 133, 75, 59, 83, 146, 20, 188, 103, 157, 53, 26, 78];
     }
 
     draw(ctx, colorMap) {
         ctx.clearRect(0, 0, c.width, c.height);
 
         var gap = (this.width / this.elements.length) / 10;
-        if (gap < 5) { gap = 5; }
+        if (gap < 1) { gap = 1; }
         var barwidth = (this.width / this.elements.length);
         var maxbar = Math.max(...this.elements);
         var curr = 0;
@@ -34,6 +34,17 @@ class Graph {
             }
         }
     }
+}
+
+function Reset() {
+    graph = new Graph();
+    selection = new SelectionSort();
+    clearInterval(stepInterval);
+    graph.draw(ctx, null);
+}
+
+function Start() {
+    stepInterval = setInterval(SelectionStep, 0, selection);
 }
 
 class SelectionSort {
@@ -89,8 +100,7 @@ function SelectionStep(data) {
 }
 
 
-var graph = new Graph();
-graph.draw(ctx, null);
+let graph;
+let selection;
 
-var selection = new SelectionSort();
-stepInterval = setInterval(SelectionStep, 180, selection);
+Reset();
